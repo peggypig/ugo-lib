@@ -26,7 +26,8 @@ type BreakLogfileHook struct {
 	logFiles      map[string]time.Time //记录本次启动生成的日志文件信息  key 文件名，包括路径；value 生成时间+保存时间
 	flag          bool                 //用于标记协程是否打开
 	notice        chan int             //用于通知打开新的分割文件的协程
-	mutex         sync.RWMutex         //读写锁
+	mutexFile     sync.RWMutex         //读写锁
+	mutexFire     sync.Mutex           // fire锁
 }
 
 func getNewLogfileName(hook *BreakLogfileHook) string {
@@ -37,10 +38,10 @@ func getNewLogfileName(hook *BreakLogfileHook) string {
 	if hook.logFiles == nil {
 		hook.logFiles = make(map[string]time.Time)
 	}
-	hook.mutex.Lock()
+	hook.mutexFile.Lock()
 	// 记录本次文件
 	hook.logFiles[fileName] = now.Add(hook.MaxAge)
-	hook.mutex.Unlock()
+	hook.mutexFile.Unlock()
 	return fileName
 }
 
@@ -61,6 +62,8 @@ func openFile(hook *BreakLogfileHook, entry *logrus.Entry) (err error) {
 }
 
 func (hook *BreakLogfileHook) Fire(entry *logrus.Entry) (err error) {
+	hook.mutexFire.Lock()
+	defer hook.mutexFire.Unlock()
 	if hook.file == nil { //如果文件还没有打开
 		hook.flag = false
 		hook.notice = make(chan int, 1)
@@ -70,8 +73,9 @@ func (hook *BreakLogfileHook) Fire(entry *logrus.Entry) (err error) {
 	if err == nil { //不出错才尝试打开日志文件处理协程
 		if hook.flag == false {
 			defer func(h *BreakLogfileHook) {
-				h.flag = false
-				recover()
+				if recover() != nil {
+					h.flag = false
+				}
 			}(hook)
 			hook.flag = true
 			go func(h *BreakLogfileHook, en *logrus.Entry) {
@@ -93,7 +97,7 @@ func (hook *BreakLogfileHook) Fire(entry *logrus.Entry) (err error) {
 					if h.DeleteFile == true {
 						//检查日志文件
 						var dels []string
-						hook.mutex.Lock()
+						hook.mutexFile.Lock()
 						for name, value := range h.logFiles {
 							if value.Before(time.Now().Local()) {
 								dels = append(dels, name)
@@ -105,7 +109,7 @@ func (hook *BreakLogfileHook) Fire(entry *logrus.Entry) (err error) {
 								delete(h.logFiles, dels[i])
 							}
 						}
-						hook.mutex.Unlock()
+						hook.mutexFile.Unlock()
 						time.Sleep(time.Second)
 					} else {
 						break
