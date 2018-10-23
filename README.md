@@ -165,5 +165,5 @@ ugo-lib是go语言的“轮子库”，包括一些常用的功能性组件，�
 ***
 ## db 组件
 >>>>#### mongo:<br>
->>>>针对mongoDb封装的curd操作，Select、Count、Insert、Update、Delete。
->>>>demo详见db组件下的*_test.go
+>>>>针对mongoDb封装的curd操作，Select、Count、Insert、Update、Delete。<br>
+>>>>demo详见db/mongo组件下的*_test.go。
