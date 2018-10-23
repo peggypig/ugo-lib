@@ -22,9 +22,8 @@ type Person struct {
 func Test_Validator(t *testing.T) {
 	errs := Validator(Person{
 		Mail:  "79911@qq.com",
-		Age:   15,
-		Money: 17,
+		Age:   1,
+		Money: 5.1,
 	})
 	fmt.Println("errs:", errs)
-
 }
