@@ -122,17 +122,17 @@ func (s *SnowFlake) Snow() (sfs string) {
 			(s.workerId << s.workerIdMoveBits) |
 			s.sequence
 	}
-	return s.format(sf)
+	return s.format(uint64(sf))
 }
 
-func (s *SnowFlake) format(num int64) string {
+func (s *SnowFlake) format(num uint64) string {
 	var str []byte
 	for {
 		var result byte
-		number := num % int64(len(s.dict))
+		number := num % uint64(len(s.dict))
 		result = s.dict[number]
 		str = append([]byte{result},str...)
-		num = num / int64(len(s.dict))
+		num = num / uint64(len(s.dict))
 		if num == 0 {
 			break
 		}

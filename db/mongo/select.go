@@ -2,8 +2,8 @@ package mongo
 
 import (
 	"github.com/goinggo/mapstructure"
-		"reflect"
-	"ugo-lib/db/common"
+	"github.com/peggypig/ugo-lib/db/common"
+	"reflect"
 )
 
 /**
@@ -15,7 +15,7 @@ import (
 * @create: 2018-10-22 18:35
 **/
 
-func Select(dbName string, collectionName string, condition map[string]interface{}, page common.Page, resultModel interface{}) (results []interface{},err error) {
+func Select(dbName string, collectionName string, condition map[string]interface{}, page common.Page, resultModel interface{}) (results []interface{}, err error) {
 	session := GetCopySession()
 	defer session.Close()
 	var resultMap []map[string]interface{}
@@ -38,7 +38,7 @@ func Select(dbName string, collectionName string, condition map[string]interface
 	return
 }
 
-func Count(dbName string, collectionName string, condition map[string]interface{}) (count int,err error) {
+func Count(dbName string, collectionName string, condition map[string]interface{}) (count int, err error) {
 	session := GetCopySession()
 	defer session.Close()
 	count, err = session.DB(dbName).C(collectionName).Find(condition).Count()
